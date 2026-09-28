@@ -23,6 +23,7 @@ export function Layout() {
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <NavLink to="/track" className={linkClass}>Track a parcel</NavLink>
+            <NavLink to="/contact" className={linkClass}>Support</NavLink>
             {user && (user.role === 'ADMIN' || user.role === 'STAFF') && (
               <>
                 <NavLink to="/dashboard" className={linkClass}>Dashboard</NavLink>
