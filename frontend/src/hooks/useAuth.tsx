@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { login as apiLogin } from '../api/auth';
 import type { AuthUser } from '../types';
 
@@ -33,17 +34,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(token); setUser(user);
     return user;
   }
+
   function signOut() {
     localStorage.removeItem('routelyn_token');
     localStorage.removeItem('routelyn_user');
     setToken(null); setUser(null);
   }
+
   return (
     <AuthContext.Provider value={{ user, token, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
