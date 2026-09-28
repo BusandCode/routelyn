@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String   @map("password_hash")
+  role         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  driver Driver?
+
+  @@map("users")
+}
+
+model Driver {
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  vehicleType   String?  @map("vehicle_type")
+  vehicleNumber String?  @map("vehicle_number")
+  isAvailable   Boolean  @default(false) @map("is_available")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shipments         Shipment[]
+  deliveryLocations DeliveryLocation[]
+
+  @@map("drivers")
+}
+
+model Shipment {
+  id                   String    @id @default(uuid())
+  trackingNumber       String    @unique @map("tracking_number")
+  status               String    @default("CREATED")
+  senderName           String    @map("sender_name")
+  senderPhone          String    @map("sender_phone")
+  pickupAddress        String    @map("pickup_address")
+  pickupLatitude       Float     @map("pickup_latitude")
+  pickupLongitude      Float     @map("pickup_longitude")
+  recipientName        String    @map("recipient_name")
+  recipientPhone       String    @map("recipient_phone")
+  destinationAddress   String    @map("destination_address")
+  destinationLatitude  Float     @map("destination_latitude")
+  destinationLongitude Float     @map("destination_longitude")
+  estimatedDelivery    DateTime? @map("estimated_delivery")
+  packageReference     String?   @map("package_reference")
+  driverId             String?   @map("driver_id")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  driver            Driver?            @relation(fields: [driverId], references: [id])
+  trackingEvents    TrackingEvent[]
+  deliveryLocations DeliveryLocation[]
+
+  @@index([trackingNumber])
+  @@index([status])
+  @@map("shipments")
+}
+
+model TrackingEvent {
+  id          String   @id @default(uuid())
+  shipmentId  String   @map("shipment_id")
+  status      String
+  description String
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("tracking_events")
+}
+
+model DeliveryLocation {
+  id         String   @id @default(uuid())
+  shipmentId String   @map("shipment_id")
+  driverId   String   @map("driver_id")
+  latitude   Float
+  longitude  Float
+  accuracy   Float?
+  recordedAt DateTime @default(now()) @map("recorded_at")
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  driver   Driver   @relation(fields: [driverId], references: [id])
+
+  @@index([shipmentId])
+  @@map("delivery_locations")
+}
